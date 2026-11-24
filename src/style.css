@@ -79,3 +79,29 @@ main{max-width:1120px;padding:0 28px}
 .portrait-slot .showcase-panel:first-child{background:radial-gradient(ellipse at 50% 35%,#c98f9a35,transparent 55%),linear-gradient(140deg,#2d2637,#171d2c)}
 .product-slot .showcase-panel:first-child{background:radial-gradient(ellipse at 50% 45%,#d5ad7433,transparent 50%),linear-gradient(140deg,#302b28,#171d2c)}
 .social-slot .showcase-panel:first-child{background:radial-gradient(ellipse at 50% 40%,#6c8edb40,transparent 55%),linear-gradient(140deg,#252a45,#171d2c)}
+
+/* Animated showcase: cinematic reveal, moving scan beam and floating creative previews */
+.showcase-placeholder{isolation:isolate;transition:transform .35s ease,border-color .35s ease}
+.showcase-placeholder:hover{transform:translateY(-4px);border-color:#8975d5}
+.showcase-placeholder:before{animation:showcase-aurora 7s ease-in-out infinite alternate}
+.showcase-placeholder:after{content:"";position:absolute;z-index:0;top:-45%;bottom:-45%;left:-35%;width:28%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,#ffffff12,transparent);filter:blur(5px);animation:showcase-sweep 5.5s ease-in-out infinite;pointer-events:none}
+.showcase-panels{z-index:1;perspective:500px}
+.showcase-panel{position:relative;overflow:hidden;isolation:isolate;animation:panel-float 5s ease-in-out infinite;box-shadow:inset 0 0 30px #0002}
+.showcase-panel:nth-child(2){animation-delay:-2.5s}
+.showcase-panel:before{content:"";position:absolute;inset:-20%;z-index:-1;background:radial-gradient(ellipse at 50% 30%,#d9c5ff36,transparent 42%),radial-gradient(ellipse at 25% 85%,#69d7db28,transparent 45%);animation:preview-light 6s ease-in-out infinite alternate}
+.showcase-panel:after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 25%,#ffffff0b 48%,transparent 70%);transform:translateX(-120%);animation:panel-shimmer 4.5s ease-in-out infinite}
+.showcase-panel.enhanced{box-shadow:inset 0 0 28px #a68aff18,0 0 18px #9575ff10}
+.showcase-panel.enhanced:before{background:radial-gradient(ellipse at 50% 28%,#d4bdff4a,transparent 43%),radial-gradient(ellipse at 75% 80%,#6ce5d536,transparent 45%);animation-duration:4.2s}
+.slot-mark{animation:mark-pulse 2.6s ease-in-out infinite;box-shadow:0 0 0 0 #a68aff30}
+.showcase-panel.enhanced .slot-mark{animation-delay:-1.3s}
+.showcase-label span{animation:label-glow 2.4s ease-in-out infinite}
+.showcase-foot{animation:foot-fade 4s ease-in-out infinite}
+@keyframes showcase-aurora{0%{opacity:.55;filter:hue-rotate(0deg)}100%{opacity:1;filter:hue-rotate(35deg)}}
+@keyframes showcase-sweep{0%,18%{left:-35%;opacity:0}35%{opacity:.8}70%,100%{left:120%;opacity:0}}
+@keyframes panel-float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.008)}}
+@keyframes preview-light{0%{transform:translate(-4%,-3%) scale(.94)}100%{transform:translate(5%,4%) scale(1.12)}}
+@keyframes panel-shimmer{0%,35%{transform:translateX(-120%)}75%,100%{transform:translateX(120%)}}
+@keyframes mark-pulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 #a68aff00}50%{transform:scale(1.09);box-shadow:0 0 0 7px #a68aff0a}}
+@keyframes label-glow{0%,100%{text-shadow:0 0 0 #bbaaff00}50%{text-shadow:0 0 9px #bbaaff80}}
+@keyframes foot-fade{0%,100%{opacity:.65}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.showcase-placeholder,.showcase-placeholder:before,.showcase-placeholder:after,.showcase-panel,.showcase-panel:before,.showcase-panel:after,.slot-mark,.showcase-label span,.showcase-foot{animation:none!important;transition:none!important}}
