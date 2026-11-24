@@ -1,6 +1,6 @@
 import './style.css';
 const $=s=>document.querySelector(s),by=id=>document.getElementById(id);
-$('#app').innerHTML = \`
+$('#app').innerHTML = `
 <header class="nav"><a class="logo" href="#">✦ PixelUp <b>Studio</b></a><span class="nav-tag">Free · Private · No watermark</span></header>
 <main><section class="intro"><div class="eyebrow">FAST BROWSER IMAGE UPSCALER</div><h1>More pixels.<br><span>More possibilities.</span></h1><p>Upscale to exact dimensions, sharpen, fine-tune and download. Your image stays on your device.</p></section>
 <section class="tool"><div class="tool-title"><div><span class="kicker">IMAGE WORKSPACE</span><h2>Upscale your image</h2></div><span class="private">⌑ Private processing</span></div>
@@ -17,7 +17,7 @@ $('#app').innerHTML = \`
 <label class="adjust-row"><span>Contrast <b id="contrast-value">105%</b></span><input id="contrast" type="range" min="50" max="160" value="105"></label>
 <label class="adjust-row"><span>Saturation <b id="saturation-value">108%</b></span><input id="saturation" type="range" min="0" max="180" value="108"></label></div>
 <div class="result-bottom"><div><b id="final-dimensions"></b><small id="final-size"></small></div><button id="download" class="primary">↓ Download enhanced image</button></div><button id="another" class="again">Upscale another image</button></div><div id="error" class="error hidden"></div></section>
-<section class="features"><div class="eyebrow">MADE FOR EVERYDAY WORK</div><h2>Everything you need. Nothing in the way.</h2><div class="feature-grid"><article><span>⚡</span><h3>Exact dimensions</h3><p>2× doubles width and height. 4× quadruples both.</p></article><article><span>⌑</span><h3>Private by design</h3><p>Photos are processed locally and never uploaded.</p></article><article><span>↗</span><h3>Fine-tune & download</h3><p>Adjust brightness, contrast and saturation.</p></article></div></section><p class="fineprint">Uses high-quality browser resampling and mild sharpening. This enlarges pixels but does not invent missing detail like generative AI restoration.</main><footer>✦ PixelUp Studio · Free image upscaling</footer>\`;
+<section class="features"><div class="eyebrow">MADE FOR EVERYDAY WORK</div><h2>Everything you need. Nothing in the way.</h2><div class="feature-grid"><article><span>⚡</span><h3>Exact dimensions</h3><p>2× doubles width and height. 4× quadruples both.</p></article><article><span>⌑</span><h3>Private by design</h3><p>Photos are processed locally and never uploaded.</p></article><article><span>↗</span><h3>Fine-tune & download</h3><p>Adjust brightness, contrast and saturation.</p></article></div></section><p class="fineprint">Uses high-quality browser resampling and mild sharpening. This enlarges pixels but does not invent missing detail like generative AI restoration.</main><footer>✦ PixelUp Studio · Free image upscaling</footer>`;
 const fileInput=by('file'),drop=by('drop'),editor=by('editor'),progress=by('progress'),result=by('result'),error=by('error');
 let file=null,sourceUrl=null,sourceImage=null,baseCanvas=null,scale=2,format='image/png',busy=false;
 const defaults={brightness:102,contrast:105,saturation:108};
