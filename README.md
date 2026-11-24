@@ -1,38 +1,49 @@
-# Free Image Upscale — PixelUp AI
+# PixelUp Studio — Fast Browser Image Upscaler
 
-A free, browser-based AI image upscaler with 2× and 4× ESRGAN models. Built with Vite, TensorFlow.js, and UpscalerJS.
+A lightweight, browser-based image enlarger inspired by the quick, no-sign-up workflow of SJPT's free normal upscaler.
 
-## Features
+## What it does
 
-- 2× and 4× AI image upscaling
-- JPG, PNG, WEBP, and BMP input (10 MB limit)
-- Drag-and-drop upload and image preview
-- Processing progress, before/after preview, and PNG download
-- Runs in the visitor's browser — images are not uploaded to a server
-- Responsive dark UI; no account, API key, or backend required
+- Enlarge images to 2× or 4×
+- Supports JPG, JPEG, PNG, and WebP
+- Export as PNG, JPG, or WebP
+- Drag-and-drop or browse to upload
+- Before/after comparison slider
+- Runs locally in the browser — images are not uploaded
+- No account, API key, model download, watermark, or server queue
+
+## Speed and quality note
+
+PixelUp uses the browser's high-quality image resampling engine. It is designed for fast enlargement and convenience, not generative AI detail reconstruction. It increases the pixel dimensions and preserves the source appearance as closely as possible; it does not invent missing texture or restore details that were never present.
 
 ## Run locally
 
-Install Node.js 20 or newer, then run `npm install` and `npm run dev`.
+Requires Node.js 20 or newer.
+
+```bash
+npm install
+npm run dev
+```
+
+Build for production:
+
+```bash
+npm run build
+npm run preview
+```
 
 ## Deploy
 
-This repository includes a GitHub Actions workflow at `.github/workflows/deploy.yml`. In **Settings → Pages**, choose **GitHub Actions** as the build and deployment source. Each push to `main` will build and publish the website.
+The project is configured for Vercel with Vite's default build command (`npm run build`) and output directory (`dist`). Connect this GitHub repository to Vercel; every push to `main` will trigger a new deployment.
 
-Website: https://patilswap39.github.io/Free-Image-Upscale/
+## Privacy
 
-## Notes
+Image decoding, resizing, and export happen in the browser. PixelUp does not send selected images to an application server.
 
-- First use downloads AI model files and requires an internet connection.
-- Processing speed and memory use depend on the device and image dimensions. Large 4× images may be slow or exceed device memory.
-- WebGL support is recommended. Use an up-to-date Chrome, Edge, or Firefox browser.
-- This is a starter project; test on target devices before public promotion.
+## Technology
 
-## Tech
+- Vite
+- HTML Canvas API
+- Browser image decoding and export APIs
 
-- [UpscalerJS](https://upscalerjs.com/)
-- [ESRGAN thick models](https://upscalerjs.com/models/)
-- [TensorFlow.js](https://www.tensorflow.org/js)
-- [Vite](https://vite.dev/)
-
-MIT License. Third-party packages and model weights retain their own licenses.
+MIT License.
