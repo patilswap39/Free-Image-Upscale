@@ -13,3 +13,8 @@
 .primary:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.12);box-shadow:0 10px 24px #7655e555}
 .primary:active:not(:disabled){transform:translateY(1px) scale(.99)}
 .adjust-row input{cursor:pointer}
+
+/* Prevent native image dragging: the comparison surface owns the pointer gesture. */
+.compare{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;overscroll-behavior:contain}
+.compare img{pointer-events:none;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+.compare-line{pointer-events:none;user-select:none}
