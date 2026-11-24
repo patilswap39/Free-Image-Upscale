@@ -53,7 +53,7 @@ fileInput.addEventListener('change',e=>setFile(e.target.files?.[0]));drop.addEve
 $('#change').addEventListener('click',()=>fileInput.click());$('#another').addEventListener('click',reset);
 document.querySelectorAll('.factor-btn').forEach(b=>b.addEventListener('click',()=>{scale=Number(b.dataset.factor);document.querySelectorAll('.factor-btn').forEach(x=>x.classList.toggle('selected',x===b));dimensions();clearOutput();}));
 document.querySelectorAll('.format-btn').forEach(b=>b.addEventListener('click',()=>{format=b.dataset.format;document.querySelectorAll('.format-btn').forEach(x=>x.classList.toggle('selected',x===b));}));
-$('#compare-range').addEventListener('input',e=>{const v=e.target.value+'%';$('#after-layer').style.width=v;$('#compare-line').style.left=v;});
+$('#compare-range').addEventListener('input',e=>{const v=e.target.value+'%';$('#after-layer').style.clipPath='inset(0 '+(100-Number(e.target.value))+'% 0 0)';$('#compare-line').style.left=v;});
 $('#run').addEventListener('click',async()=>{
  if(!sourceImage||busy)return;busy=true;clearMessage();clearOutput();$('#run').disabled=true;progress.classList.remove('hidden');$('#progress-label').textContent='Upscaling in your browser…';$('#progress-value').textContent='15%';$('#bar-fill').style.width='15%';
  try{
@@ -66,7 +66,7 @@ $('#run').addEventListener('click',async()=>{
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.fillStyle='#fff';if(format==='image/jpeg')ctx.fillRect(0,0,w,h);
   ctx.drawImage(sourceImage,0,0,w,h);$('#progress-value').textContent='85%';$('#bar-fill').style.width='85%';
   outputBlob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Could not export this image. Try another format.')),format,0.94));
-  outputUrl=URL.createObjectURL(outputBlob);$('#compare-before').src=sourceUrl;$('#compare-after').src=outputUrl;$('#after-layer').style.width='50%';$('#compare-line').style.left='50%';$('#compare-range').value=50;
+  outputUrl=URL.createObjectURL(outputBlob);$('#compare-before').src=sourceUrl;$('#compare-after').src=outputUrl;$('#after-layer').style.clipPath='inset(0 50% 0 0)';$('#compare-line').style.left='50%';$('#compare-range').value=50;
   $('#final-dimensions').textContent=fmtDim(w,h);$('#final-size').textContent=fmtBytes(outputBlob.size)+' · '+format.split('/')[1].toUpperCase();
   $('#progress-value').textContent='100%';$('#bar-fill').style.width='100%';await new Promise(r=>setTimeout(r,100));progress.classList.add('hidden');editor.classList.add('hidden');result.classList.remove('hidden');result.scrollIntoView({behavior:'smooth',block:'nearest'});
  }catch(e){progress.classList.add('hidden');message(e.message||'Something went wrong while upscaling.');}
