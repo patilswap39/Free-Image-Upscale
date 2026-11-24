@@ -18,3 +18,21 @@
 .compare{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;overscroll-behavior:contain}
 .compare img{pointer-events:none;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
 .compare-line{pointer-events:none;user-select:none}
+
+/* Collapsible pro adjustment drawer */
+.adjust-toggle{width:100%;margin:16px 0 0;padding:15px 17px;display:flex;align-items:center;justify-content:space-between;text-align:left;border:1px solid #393252;border-radius:12px;background:linear-gradient(110deg,#1c1a2e,#111827);color:#f4f1ff;transition:border-color .18s,background .18s}
+.adjust-toggle:hover,.adjust-toggle.open{border-color:#9279ed;background:linear-gradient(110deg,#25203b,#151c2b)}
+.adjust-toggle>span:first-child{display:flex;flex-direction:column;gap:4px}
+.adjust-toggle b{font:600 13px 'Space Grotesk';color:#d6caff}
+.adjust-toggle small{font-size:10px;color:#9299ad}
+.adjust-chevron{font-size:22px;color:#b9a7ff;transition:transform .2s}
+.adjust-toggle.open .adjust-chevron{transform:rotate(180deg)}
+.adjustments{margin-top:9px;padding:17px;background:#101521;border:1px solid #2a3040;border-radius:11px;animation:adjust-in .2s ease}
+@keyframes adjust-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.preset-row{margin:8px 0 18px}.presets{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.preset-btn{padding:8px 12px;border-radius:8px;border:1px solid #343a4d;background:#171c2a;color:#b9c0d0;font-size:10px;transition:.16s}
+.preset-btn:hover{border-color:#8270c8;color:#e5dcff}.preset-btn.selected{border-color:#9b83ff;background:#8062e528;color:#d6caff}
+.adjust-grid{display:grid;grid-template-columns:1fr 1fr;column-gap:22px;row-gap:2px}
+.adjust-row{display:block;margin:12px 0}.adjust-row>span{display:flex;justify-content:space-between;font-size:11px;color:#b7bdcc;margin-bottom:8px}.adjust-row b{color:#b8a7ff;font-variant-numeric:tabular-nums}.adjust-row input{width:100%;accent-color:#9b83ff;cursor:pointer}
+.adjust-note{margin:12px 0 0;font-size:9px;line-height:1.6;color:#7f899d}
+@media(max-width:650px){.adjust-grid{grid-template-columns:1fr}.adjustments{padding:13px}.adjust-toggle{padding:13px}}
