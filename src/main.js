@@ -25,25 +25,56 @@ const bytes=n=>n<1048576?(n/1024).toFixed(0)+' KB':(n/1048576).toFixed(2)+' MB';
 const dims=(w,h)=>w.toLocaleString()+' × '+h.toLocaleString()+' px';
 function fail(s){error.textContent=s;error.classList.remove('hidden');}
 function clearFail(){error.textContent='';error.classList.add('hidden');}
-function clearResult(){result.classList.add('hidden');baseCanvas=null;processedCanvas=null;}
+function clearResult(){result.classList.add('hidden');baseCanvas=null;processedCanvas=null;previewBase=null;}
 function updateSize(){if(sourceImage)by('output-size').textContent=dims(sourceImage.naturalWidth*scale,sourceImage.naturalHeight*scale);}
 function choose(f){clearFail();if(!f)return;if(!['image/jpeg','image/png','image/webp'].includes(f.type))return fail('Choose a JPG, PNG or WebP image.');if(f.size>16*1048576)return fail('Image is larger than 16 MB. Choose a smaller file.');const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{if(sourceUrl)URL.revokeObjectURL(sourceUrl);clearResult();file=f;sourceImage=im;sourceUrl=u;by('source').src=u;by('source-meta').textContent=dims(im.naturalWidth,im.naturalHeight)+' · '+bytes(f.size);updateSize();editor.classList.remove('hidden');drop.classList.add('compact');drop.querySelector('h3').textContent=f.name;drop.querySelector('p').textContent='Image selected';};im.onerror=()=>{URL.revokeObjectURL(u);fail('Could not read this image.');};im.src=u;}
+function makePreviewCanvas(source,maxSide=1100){
+ const ratio=Math.min(1,maxSide/Math.max(source.width,source.height));
+ const c=document.createElement('canvas');c.width=Math.max(1,Math.round(source.width*ratio));c.height=Math.max(1,Math.round(source.height*ratio));
+ const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,0,0,c.width,c.height);return c;
+}
 function sharpen(source,amount){
  const c=document.createElement('canvas');c.width=source.width;c.height=source.height;
  const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0);
  if(amount<=0)return c;
- const w=c.width,h=c.height,img=ctx.getImageData(0,0,w,h),src=img.data,out=new Uint8ClampedArray(src.length),a=amount/100*.65;
- for(let y=0;y<h;y++)for(let x=0;x<w;x++){const p=(y*w+x)*4,l=x?p-4:p,r=x<w-1?p+4:p,t=y?p-w*4:p,b=y<h-1?p+w*4:p;
- for(let k=0;k<3;k++)out[p+k]=src[p+k]*(1+4*a)-(src[l+k]+src[r+k]+src[t+k]+src[b+k])*a;
- out[p+3]=src[p+3];}
+ const w=c.width,h=c.height,img=ctx.getImageData(0,0,w,h),src=img.data,out=new Uint8ClampedArray(src.length),a=amount/100*.55;
+ for(let y=0;y<h;y++){for(let x=0;x<w;x++){const p=(y*w+x)*4,l=x?p-4:p,r=x<w-1?p+4:p,t=y?p-w*4:p,b=y<h-1?p+w*4:p;
+  for(let k=0;k<3;k++)out[p+k]=src[p+k]*(1+4*a)-(src[l+k]+src[r+k]+src[t+k]+src[b+k])*a;
+  out[p+3]=src[p+3];
+ }}
  img.data.set(out);ctx.putImageData(img,0,0);return c;
 }
+function sharpenFullResolution(source,amount){
+ return new Promise((resolve,reject)=>{
+  try{
+   const c=document.createElement('canvas');c.width=source.width;c.height=source.height;
+   const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0);
+   if(amount<=0){resolve(c);return;}
+   const w=c.width,h=c.height,img=ctx.getImageData(0,0,w,h),src=img.data,out=new Uint8ClampedArray(src.length),a=amount/100*.55;
+   let y=0;const rowsPerChunk=Math.max(8,Math.floor(180000/Math.max(1,w)));
+   function chunk(){
+    const stop=Math.min(h,y+rowsPerChunk);
+    for(;y<stop;y++)for(let x=0;x<w;x++){const p=(y*w+x)*4,l=x?p-4:p,r=x<w-1?p+4:p,t=y?p-w*4:p,b=y<h-1?p+w*4:p;
+     for(let k=0;k<3;k++)out[p+k]=src[p+k]*(1+4*a)-(src[l+k]+src[r+k]+src[t+k]+src[b+k])*a;
+     out[p+3]=src[p+3];
+    }
+    if(y<h){setTimeout(chunk,0);}else{img.data.set(out);ctx.putImageData(img,0,0);resolve(c);}
+   }
+   chunk();
+  }catch(e){reject(e);}
+ });
+}
+let previewBase=null,previewFrame=0;
 function refreshSharpen(){
  if(!baseCanvas)return;
- processedCanvas=sharpen(baseCanvas,+by('sharpen').value);
- by('compare-after').src=processedCanvas.toDataURL('image/png');
  by('sharpen-value').textContent=by('sharpen').value+'%';
- preview();
+ if(previewFrame)cancelAnimationFrame(previewFrame);
+ previewFrame=requestAnimationFrame(()=>{
+  previewFrame=0;
+  const previewCanvas=sharpen(previewBase,+by('sharpen').value);
+  by('compare-after').src=previewCanvas.toDataURL('image/jpeg',.88);
+  preview();
+ });
 }
 function filter(){return 'brightness('+by('brightness').value+'%) contrast('+by('contrast').value+'%) saturate('+by('saturation').value+'%)';}
 function preview(){by('compare-after').style.filter=filter();for(const id of ['brightness','contrast','saturation'])by(id+'-value').textContent=by(id).value+'%';by('sharpen-value').textContent=by('sharpen').value+'%';}
@@ -53,6 +84,6 @@ document.querySelectorAll('.factor-btn').forEach(b=>b.addEventListener('click',(
 document.querySelectorAll('.format-btn').forEach(b=>b.addEventListener('click',()=>{format=b.dataset.format;document.querySelectorAll('.format-btn').forEach(x=>x.classList.toggle('selected',x===b));}));
 by('compare-range').addEventListener('input',e=>compare(+e.target.value));
 const compareBox=document.querySelector('.compare');let dragging=false,activePointer=null;function moveCompare(e){const r=compareBox.getBoundingClientRect();if(!r.width)return;const v=Math.max(0,Math.min(100,((e.clientX-r.left)/r.width)*100));compare(v);by('compare-range').value=String(Math.round(v));}compareBox.querySelectorAll('img').forEach(img=>{img.draggable=false;img.addEventListener('dragstart',e=>e.preventDefault());});compareBox.addEventListener('dragstart',e=>e.preventDefault());compareBox.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;e.preventDefault();dragging=true;activePointer=e.pointerId;compareBox.setPointerCapture(e.pointerId);moveCompare(e);});compareBox.addEventListener('pointermove',e=>{if(dragging&&e.pointerId===activePointer){e.preventDefault();moveCompare(e);}});function stopCompareDrag(e){if(activePointer===null||!e||e.pointerId===activePointer){dragging=false;activePointer=null;}}compareBox.addEventListener('pointerup',stopCompareDrag);compareBox.addEventListener('pointercancel',stopCompareDrag);compareBox.addEventListener('lostpointercapture',stopCompareDrag);for(const id of ['brightness','contrast','saturation'])by(id).addEventListener('input',preview);by('sharpen').addEventListener('input',refreshSharpen);$('#reset-adjust').addEventListener('click',()=>{for(const id of Object.keys(defaults))by(id).value=defaults[id];refreshSharpen();preview();});
-$('#run').addEventListener('click',async()=>{if(!sourceImage||busy)return;busy=true;clearFail();clearResult();$('#run').disabled=true;progress.classList.remove('hidden');by('progress-value').textContent='10%';by('bar-fill').style.width='10%';try{await new Promise(requestAnimationFrame);const w=sourceImage.naturalWidth*scale,h=sourceImage.naturalHeight*scale;if(w*h>32000000)throw Error('Output is too large for smooth browser processing. Try a smaller image or 2×.');const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('Your browser could not create an image canvas.');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(sourceImage,0,0,w,h);by('progress-value').textContent='35%';by('bar-fill').style.width='35%';await new Promise(requestAnimationFrame);baseCanvas=c;for(const id of Object.keys(defaults))by(id).value=defaults[id];refreshSharpen();by('compare-before').src=sourceUrl;compare(50);by('compare-range').value=50;by('final-dimensions').textContent=dims(w,h);by('final-size').textContent=scale+'× · '+bytes(w*h*4)+' approx. uncompressed';by('progress-value').textContent='100%';by('bar-fill').style.width='100%';await new Promise(r=>setTimeout(r,100));progress.classList.add('hidden');editor.classList.add('hidden');result.classList.remove('hidden');result.scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){progress.classList.add('hidden');fail(e.message||'Upscaling failed.');}finally{busy=false;$('#run').disabled=false;}});
-$('#download').addEventListener('click',async()=>{if(!processedCanvas)return;const b=$('#download');b.disabled=true;b.textContent='Preparing…';try{const c=document.createElement('canvas');c.width=processedCanvas.width;c.height=processedCanvas.height;const ctx=c.getContext('2d');ctx.filter=filter();if(format==='image/jpeg'){ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);}ctx.drawImage(processedCanvas,0,0);const blob=await new Promise((ok,no)=>c.toBlob(x=>x?ok(x):no(Error('Could not export image.')),format,.94));const u=URL.createObjectURL(blob),a=document.createElement('a'),ext=format.split('/')[1];a.href=u;a.download=(file.name||'image').replace(/\.[^.]+$/,'')+'-'+scale+'x.'+(ext==='jpeg'?'jpg':ext);a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);}catch(e){fail(e.message);}finally{b.disabled=false;b.textContent='↓ Download enhanced image';}});
+$('#run').addEventListener('click',async()=>{if(!sourceImage||busy)return;busy=true;clearFail();clearResult();$('#run').disabled=true;progress.classList.remove('hidden');by('progress-value').textContent='10%';by('bar-fill').style.width='10%';try{await new Promise(requestAnimationFrame);const w=sourceImage.naturalWidth*scale,h=sourceImage.naturalHeight*scale;if(w*h>32000000)throw Error('Output is too large for smooth browser processing. Try a smaller image or 2×.');const c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d',{willReadFrequently:true});if(!ctx)throw Error('Your browser could not create an image canvas.');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(sourceImage,0,0,w,h);by('progress-value').textContent='35%';by('bar-fill').style.width='35%';await new Promise(requestAnimationFrame);baseCanvas=c;previewBase=makePreviewCanvas(c);for(const id of Object.keys(defaults))by(id).value=defaults[id];refreshSharpen();by('compare-before').src=sourceUrl;compare(50);by('compare-range').value=50;by('final-dimensions').textContent=dims(w,h);by('final-size').textContent=scale+'× · '+bytes(w*h*4)+' approx. uncompressed';by('progress-value').textContent='100%';by('bar-fill').style.width='100%';await new Promise(r=>setTimeout(r,100));progress.classList.add('hidden');editor.classList.add('hidden');result.classList.remove('hidden');result.scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){progress.classList.add('hidden');fail(e.message||'Upscaling failed.');}finally{busy=false;$('#run').disabled=false;}});
+$('#download').addEventListener('click',async()=>{if(!baseCanvas)return;const b=$('#download');b.disabled=true;b.textContent='Preparing…';try{const amount=+by('sharpen').value;const exportCanvas=await sharpenFullResolution(baseCanvas,amount);const c=document.createElement('canvas');c.width=exportCanvas.width;c.height=exportCanvas.height;const ctx=c.getContext('2d');ctx.filter=filter();if(format==='image/jpeg'){ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);}ctx.drawImage(exportCanvas,0,0);const blob=await new Promise((ok,no)=>c.toBlob(x=>x?ok(x):no(Error('Could not export image.')),format,.94));const u=URL.createObjectURL(blob),a=document.createElement('a'),ext=format.split('/')[1];a.href=u;a.download=(file.name||'image').replace(/\.[^.]+$/,'')+'-'+scale+'x.'+(ext==='jpeg'?'jpg':ext);a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);}catch(e){fail(e.message);}finally{b.disabled=false;b.textContent='↓ Download enhanced image';}});
 $('#another').addEventListener('click',()=>{if(busy)return;file=null;sourceImage=null;fileInput.value='';if(sourceUrl)URL.revokeObjectURL(sourceUrl);sourceUrl=null;clearResult();editor.classList.add('hidden');drop.classList.remove('compact');drop.querySelector('h3').textContent='Drop an image here';drop.querySelector('p').innerHTML='or <button id="browse" class="inline-btn" type="button">choose a file</button>';by('browse').addEventListener('click',()=>fileInput.click());clearFail();});
